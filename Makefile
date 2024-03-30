@@ -85,6 +85,15 @@ docker-run-sepolia: docker-clean ## Run the node with the sepolia testnet
 		-f ./build/compose-sepolia.yaml \
 		up
 
+.PHONY: docker-run-local
+docker-run-local: docker-clean ## Run the node with the local testnet
+	@docker compose \
+		-f ./build/compose-database.yaml \
+		-f ./build/compose-snapshot.yaml \
+		-f ./build/compose-node.yaml \
+		-f ./build/compose-local.yaml \
+		up
+
 .PHONY: docker-clean
 docker-clean: ## Remove the containers and volumes from previous compose run
 	@docker compose \

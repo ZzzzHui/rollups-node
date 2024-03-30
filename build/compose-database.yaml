@@ -5,6 +5,8 @@ version: "3.9"
 name: rollups-node
 services:
   database:
+    networks:
+      - eth-pos-devnet_mynet
     image: postgres:16-alpine
     ports:
       - 5432:5432
@@ -17,8 +19,14 @@ services:
       - POSTGRES_PASSWORD=password
 
   node:
+    networks:
+      - eth-pos-devnet_mynet
     depends_on:
       database:
         condition: service_healthy
     environment:
       CARTESI_POSTGRES_ENDPOINT: "postgres://postgres:password@database:5432/postgres"
+
+networks:
+  eth-pos-devnet_mynet:
+    external: true

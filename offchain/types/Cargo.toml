@@ -7,6 +7,8 @@ version.workspace = true
 [dependencies]
 contracts = { path = "../contracts" }
 rollups-events = { path = "../rollups-events" }
+reqwest = "0.11"
+hex = "0.4"
 
 anyhow.workspace = true
 async-trait.workspace = true

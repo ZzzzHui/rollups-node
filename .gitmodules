@@ -1,6 +1,6 @@
 [submodule "grpc-interfaces"]
 	path = offchain/grpc-interfaces/grpc-interfaces
-	url = ../grpc-interfaces.git
+	url = https://github.com/cartesi/grpc-interfaces.git
 [submodule "rollups-contracts"]
 	path = rollups-contracts
     url = https://github.com/cartesi/rollups-contracts

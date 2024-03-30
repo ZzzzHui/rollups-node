@@ -6,11 +6,15 @@ version: "3.9"
 name: rollups-node
 services:
   machine_snapshot_setup:
+    networks:
+      - eth-pos-devnet_mynet
     image: cartesi/rollups-node-snapshot:devel
     volumes:
       - machine:/usr/share/cartesi/snapshot
 
   node:
+    networks:
+      - eth-pos-devnet_mynet
     depends_on:
       machine_snapshot_setup:
         condition: service_completed_successfully
@@ -21,3 +25,7 @@ services:
 
 volumes:
   machine: {}
+
+networks:
+  eth-pos-devnet_mynet:
+    external: true

@@ -10,6 +10,7 @@ use eth_state_fold::{
 use eth_state_fold_types::{
     ethers::{
         contract::LogMeta,
+        core::k256::elliptic_curve::rand_core::block,
         prelude::EthEvent,
         providers::Middleware,
         types::{Address, TxHash},
@@ -20,7 +21,9 @@ use eth_state_fold_types::{
 use anyhow::{ensure, Context};
 use async_trait::async_trait;
 use im::{HashMap, Vector};
+use reqwest::header;
 use serde::{Deserialize, Serialize};
+use serde_json::{Number, Value};
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
@@ -212,14 +215,57 @@ impl Input {
         let sender = user_data.get(event.sender);
         let dapp = user_data.get(event.dapp);
 
+        // from blob hash, obtain blob data
+        let block_id = block.number.as_u64();
+        let blob_payload = extract_blob_sidecar(block_id).unwrap();
+
         Ok(Self {
             sender,
-            payload: event.input.to_vec(),
+            payload: blob_payload,
             dapp,
             block_added: block,
             tx_hash: Arc::new(meta.transaction_hash),
         })
     }
+}
+
+// TODO: check for the sidecar that matches the blobhash onchain
+// Currently it gets the first blob from the block, in which the state server detect an event
+fn extract_blob_sidecar(
+    block_id: u64,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    println!("extracting....");
+
+    // beacon chain server url
+    // TODO: this url is better passed from `build/compose-local.yaml` file
+    let url = "http://172.23.0.100:3500"; 
+
+    let mut headers = header::HeaderMap::new();
+    headers.insert("accept", "application/json".parse().unwrap());
+
+    let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+    let res = client
+        .get(
+            url.to_owned()
+                + "/eth/v1/beacon/blob_sidecars/"
+                + block_id.to_string().as_str(),
+        )
+        .headers(headers)
+        .send()?
+        .text()?;
+
+    let res_json: Value = serde_json::from_str(res.as_str())?;
+    let blob = &res_json["data"][0]["blob"].to_string(); // hex string with '0x'
+    println!("blob extracted: {}", blob);
+
+    // remove 0x and remove quotes at the beginning and end
+    let blob_no_0x = &blob[3..(&blob.len()-1)];
+    let blob_vec = hex::decode(blob_no_0x).unwrap();
+
+    Ok(blob_vec)
 }
 
 fn meta_consistent_with_block(

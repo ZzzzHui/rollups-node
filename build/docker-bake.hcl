@@ -8,7 +8,6 @@ group "default" {
   targets = [
     "rollups-node",
     "rollups-node-snapshot",
-    "rollups-node-devnet",
   ]
 }
 
